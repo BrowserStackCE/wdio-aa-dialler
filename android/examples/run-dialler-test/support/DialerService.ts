@@ -8,8 +8,13 @@ export interface WaitForIncomingCallOptions {
   pollIntervalMs?: number;
 }
 
-/** Default dialler app package (use com.google.android.dialer on Pixel / some OEMs). */
-const DIALER_APP_ID = 'com.android.dialer';
+/** Dialler app packages by OEM (Samsung S24 and others use Samsung dialler). */
+const DIALER_PACKAGES = [
+  'com.samsung.android.dialer', // Samsung Galaxy (e.g. S24)
+  'com.android.dialer',
+  'com.google.android.dialer',
+];
+const DIALER_APP_ID = DIALER_PACKAGES[0]; // default for showKeypad
 
 /** Selectors for Answer/Accept and End call (OEM-specific; extend if needed). */
 const ANSWER_SELECTORS = [
@@ -86,19 +91,54 @@ class DialerService {
 
   /**
    * Brings the Android Dialler app to the foreground.
+   * Uses mobile: startActivity (activateApp is not supported on BrowserStack).
+   * Tries DIAL intent first (opens default dialler), then MAIN/LAUNCHER per OEM package.
    */
   async showKeypad() {
-    await browser.execute('mobile: activateApp', { appId: DIALER_APP_ID });
+    // 1) DIAL intent: opens default dialler (Samsung, Pixel, AOSP) without hardcoding package
+    try {
+      await browser.execute('mobile: startActivity', {
+        action: 'android.intent.action.DIAL',
+        uri: 'tel:',
+      });
+      await browser.pause(1500);
+      return;
+    } catch {
+      // continue to package-specific launch
+    }
+
+    // 2) Fallback: start each known dialler package by MAIN/LAUNCHER
+    for (const pkg of DIALER_PACKAGES) {
+      try {
+        await browser.execute('mobile: startActivity', {
+          package: pkg,
+          action: 'android.intent.action.MAIN',
+          categories: ['android.intent.category.LAUNCHER'],
+        });
+        await browser.pause(1500);
+        return;
+      } catch {
+        continue;
+      }
+    }
+    throw new Error('Could not bring dialler to foreground (tried DIAL intent and packages: ' + DIALER_PACKAGES.join(', ') + ')');
   }
 
+  /** Options for digit entry (e.g. force mobile: type only for testing). */
+  pressDigitOptions?: { useMobileTypeOnly?: boolean };
+
   /**
-   * Presses a digit (0-9) using mobile: type (supported on BrowserStack). Falls back to clicking the digit key if type fails.
+   * Presses a digit (0-9) using mobile: type (supported on BrowserStack). Falls back to clicking the digit key if type fails, unless useMobileTypeOnly is set.
    */
-  async pressDigit(digit: number | string) {
+  async pressDigit(digit: number | string, options?: { useMobileTypeOnly?: boolean }) {
+    const useMobileTypeOnly = options?.useMobileTypeOnly ?? this.pressDigitOptions?.useMobileTypeOnly ?? false;
     const char = typeof digit === 'string' ? digit : String(digit);
     try {
       await browser.execute('mobile: type', { text: char });
-    } catch {
+    } catch (err) {
+      if (useMobileTypeOnly) {
+        throw new Error(`mobile: type failed for digit "${char}": ${err instanceof Error ? err.message : String(err)}`);
+      }
       // Fallback: click the digit key on the dialpad (e.g. text "1" for 1)
       const el = await $(`android=new UiSelector().text("${char}")`);
       await el.waitForDisplayed({ timeout: 3000 });
@@ -108,11 +148,11 @@ class DialerService {
   }
 
   /**
-   * Enters a full sequence (e.g., DTMF digits or PIN).
+   * Enters a full sequence (e.g., DTMF digits or PIN). Pass { useMobileTypeOnly: true } to test mobile: type path only.
    */
-  async enterSequence(sequence: string) {
+  async enterSequence(sequence: string, options?: { useMobileTypeOnly?: boolean }) {
     for (const char of sequence) {
-      await this.pressDigit(char);
+      await this.pressDigit(char, options);
       await browser.pause(500);
     }
   }

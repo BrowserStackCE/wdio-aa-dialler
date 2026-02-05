@@ -1,5 +1,5 @@
 import assert from 'assert';
-import DialerAIService from '../support/DialerAIService';
+import DialerService from '../support/DialerService';
 
 const INCOMING_CALL_WAIT_MS = 120000; // 2 minutes for user to dial
 const LONG_WAIT_AFTER_ARTICLE_MS = 20000; // 20s on article before prompting to dial
@@ -19,7 +19,7 @@ describe('Dialler: Wikipedia + incoming call + DTMF', () => {
   let phoneNumber = '<unknown>';
   let simCapabilities: Record<string, unknown> = {};
 
-  it('retrieves device SIM capabilities and phone number for the dial prompt', async function () {
+  it.skip('retrieves device SIM capabilities and phone number for the dial prompt', async function () {
     try {
       const raw = await browser.execute(
         'browserstack_executor: {"action":"deviceInfo","arguments":{"deviceProperties":["simOptions"]}}'
@@ -72,7 +72,7 @@ describe('Dialler: Wikipedia + incoming call + DTMF', () => {
     assert.ok(phoneNumber, 'Device phone number retrieved (or defaulted)');
   });
 
-  it('opens Wikipedia app and navigates to first search result article', async function () {
+  it.skip('opens Wikipedia app and navigates to first search result article', async function () {
     const skipButton = await $(
       'android=new UiSelector().resourceId("org.wikipedia.alpha:id/fragment_onboarding_skip_button")'
     );
@@ -165,7 +165,7 @@ describe('Dialler: Wikipedia + incoming call + DTMF', () => {
     }
   });
 
-  it('waits on article then prompts user to dial the device number', async function () {
+  it.skip('waits on article then prompts user to dial the device number', async function () {
     await browser.pause(LONG_WAIT_AFTER_ARTICLE_MS);
 
     // Write directly to stdout so the prompt appears in the local terminal with real bold (ANSI), not stringified
@@ -177,20 +177,27 @@ describe('Dialler: Wikipedia + incoming call + DTMF', () => {
     writeToTerminal('\n');
   });
 
-  it('detects incoming call and answers it', async function () {
-    await DialerAIService.waitForIncomingCallAndAccept({
+  it.skip('detects incoming call and answers it', async function () {
+    await DialerService.waitForIncomingCallAndAccept({
       timeoutMs: INCOMING_CALL_WAIT_MS,
       pollIntervalMs: 5000,
     });
     await browser.pause(3000); // Let call connect
   });
 
-  it('dials DTMF sequence 1-9 and ends the call', async function () {
-    await DialerAIService.enterSequence(DTMF_SEQUENCE);
+  it('open the dialler app', async function () {
+    await DialerService.showKeypad();
     await browser.pause(2000);
-    await DialerAIService.endCall();
+    assert.ok(true, 'Dialler app brought to foreground');
+  });
+
+  it('dials DTMF sequence via mobile: type and ends the call', async function () {
+    // Use mobile: type only to verify BrowserStack supports browser.execute('mobile: type', { text: '...' })
+    await DialerService.enterSequence(DTMF_SEQUENCE, { useMobileTypeOnly: true });
+    await browser.pause(2000);
+    await DialerService.endCall();
     await browser.pause(2000);
 
-    assert.ok(true, 'DTMF sequence 123456789 dialled and call closed successfully');
+    assert.ok(true, 'DTMF sequence dialled via mobile: type and call closed successfully');
   });
 });

@@ -164,7 +164,7 @@ class DialerAIService {
   async enterSequence(sequence: string): Promise<void> {
     if (sequence.length === 0) return;
     await aiCommand(
-      `Tap the digits ${sequence} on the keypad in order, once each`,
+      `Tap the digits ${sequence} on the keypad in order, once each, using long press`,
       `enterSequence(${sequence})`
     );
     await browser.pause(500);
