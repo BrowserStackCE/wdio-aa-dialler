@@ -68,6 +68,79 @@ npm run dialler   # dialler (BStack sample app + incoming call + DTMF)
 
 ---
 
+## BrowserStack API reporting (CSV / Excel / Markdown)
+
+The project includes a configurable reporter that aggregates:
+
+- Test Reporting & Analytics (build details + tests)
+- App Automate (sessions + apps)
+
+It produces customer-shareable outputs for spreadsheets, docs, and IDE previews.
+
+### Quick start
+
+```sh
+cd tools/browserstack-report
+npm i
+cp browserstack-report.config.sample.json browserstack-report.config.json
+export BROWSERSTACK_USERNAME="your_username"
+export BROWSERSTACK_ACCESS_KEY="your_access_key"
+npm run report
+```
+
+### Output files
+
+Reports are generated under `tools/browserstack-report/reports/browserstack-report/` by default.
+
+- `browserstack-report-overview.csv`
+- `browserstack-report-builds.csv`
+- `browserstack-report-tests.csv`
+- `browserstack-report-sessions.csv`
+- `browserstack-report-apps.csv`
+- `browserstack-report.xlsx` (one sheet per section)
+- `browserstack-report.md` (full markdown tables, latest-first)
+- `browserstack-report-*.json` (raw tabular exports)
+
+### Minimal config philosophy
+
+Most config keys are optional. If a key is omitted, defaults are applied in code, so config files stay small and portable.
+
+Useful knobs:
+
+- `filters.days`: trailing-day filter; set `null` (default) to export all data
+- `filters.projects` / `filters.teams` / `filters.people`: optional keyword filters
+- `filters.applyDaysToApps`: whether `days` also applies to app inventory (`false` by default)
+- `outputs.formats`: choose `csv`, `xlsx`, `md`, and/or `json`
+- `columns.*`: override output columns and order for customer-facing schemas
+- `inputs.discoverRecentBuilds`: auto-discover recent builds when build IDs are not provided
+
+Example filter block:
+
+```json
+"filters": {
+  "days": 14,
+  "projects": ["dialler", "payments"],
+  "teams": ["griffins"],
+  "people": ["thomas"],
+  "caseSensitive": false
+}
+```
+
+### Build discovery behavior
+
+- If `inputs.testReportingBuildIds` is empty, Test Reporting builds are discovered from Test Reporting project build lists.
+- If `inputs.appAutomateBuildIds` is empty, App Automate builds are discovered from recent App Automate builds.
+- `filters.days` is used during discovery so only recent runs are pulled when a day window is set.
+- You can always provide explicit build IDs to lock reporting to specific runs.
+
+### Troubleshooting
+
+- Empty report sections usually mean no matching build IDs after filtering; set `filters.days` to `null` to validate first.
+- Ensure `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY` are exported in the same shell running the script.
+- Keep `discoverRecentBuilds.enabled: true` unless you always pass explicit build IDs.
+
+---
+
 ## Test suites
 
 ### Parallel tests (`run-parallel-test`)

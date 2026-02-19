@@ -1,0 +1,16 @@
+{
+  "testReporting": { "enabled": true },
+  "appAutomate": { "enabled": true },
+  "filters": {
+    "days": 21,
+    "projects": [],
+    "teams": [],
+    "people": [],
+    "applyDaysToApps": false
+  },
+  "outputs": {
+    "directory": "reports/browserstack-report",
+    "baseName": "browserstack-report",
+    "markdownMaxRows": 200
+  }
+}

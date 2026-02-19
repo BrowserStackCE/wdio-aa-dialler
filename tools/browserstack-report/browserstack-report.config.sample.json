@@ -1,0 +1,23 @@
+{
+  "inputs": {
+    "testReportingBuildIds": [],
+    "appAutomateBuildIds": [],
+    "appCustomIds": [],
+    "discoverRecentBuilds": {
+      "enabled": true,
+      "maxBuildsPerSource": 20,
+      "testReportingProjectIds": []
+    }
+  },
+  "filters": {
+    "days": null,
+    "projects": [],
+    "teams": [],
+    "people": [],
+    "applyDaysToApps": false
+  },
+  "outputs": {
+    "directory": "reports/browserstack-report",
+    "baseName": "browserstack-report"
+  }
+}

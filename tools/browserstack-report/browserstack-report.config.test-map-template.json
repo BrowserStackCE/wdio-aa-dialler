@@ -1,0 +1,91 @@
+{
+  "inputs": {
+    "testReportingBuildIds": []
+  },
+  "appAutomate": {
+    "enabled": false
+  },
+  "outputs": {
+    "baseName": "browserstack-test-map",
+    "formats": ["csv", "xlsx", "md"],
+    "markdownMaxRows": 0
+  },
+  "filters": {
+    "days": null,
+    "projects": [],
+    "teams": [],
+    "people": []
+  },
+  "columns": {
+    "overview": [
+      {
+        "key": "metric",
+        "header": "Metric"
+      },
+      {
+        "key": "value",
+        "header": "Value"
+      }
+    ],
+    "builds": [
+      {
+        "key": "build_id",
+        "header": "BuildID"
+      },
+      {
+        "key": "build_name",
+        "header": "BuildName"
+      },
+      {
+        "key": "build_status",
+        "header": "BuildStatus"
+      }
+    ],
+    "tests": [
+      {
+        "key": "root_file_path",
+        "header": "Feature File"
+      },
+      {
+        "key": "test_name",
+        "header": "Scenario Name"
+      },
+      {
+        "key": "root_scope",
+        "header": "App Type"
+      },
+      {
+        "key": "root_os_name",
+        "header": "Platform"
+      },
+      {
+        "key": "root_device",
+        "header": "Device"
+      },
+      {
+        "key": "test_status",
+        "header": "Automation Status"
+      },
+      {
+        "key": "test_tags",
+        "header": "Tags"
+      }
+    ],
+    "sessions": [
+      {
+        "key": "session_id",
+        "header": "SessionID"
+      },
+      {
+        "key": "session_name",
+        "header": "Session Name"
+      }
+    ],
+    "apps": [
+      {
+        "key": "app_name",
+        "header": "App Name"
+      }
+    ]
+  }
+}
